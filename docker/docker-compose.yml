@@ -5,10 +5,13 @@ services:
       - "9411:9411"
     depends_on: [otel-collector]
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.111.0
+    image: otel/opentelemetry-collector
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
   chromadb:
     image: ghcr.io/chroma-core/chroma:latest
     volumes:
@@ -17,13 +20,14 @@ services:
       - "8000:8000"
     environment:
       - CHROMA_OPEN_TELEMETRY__ENDPOINT=http://otel-collector:4317/
-      - CHROMA_OPEN_TELEMETRY__SERVICE_NAME=chroma
+      - CHROMA_OPEN_TELEMETRY__SERVICE_NAME=chromadb
     depends_on:
       - otel-collector
       - zipkin
   app:
     build: 
-      context: .
+      context: ./..
+      dockerfile: docker/Dockerfile
     command: ["bash"]
     volumes:
       - ../:/app/

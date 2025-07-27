@@ -3,3 +3,6 @@ run-chroma:
 
 run-app:
 	docker compose -f docker/docker-compose.yml run --rm app
+
+build:
+	docker compose -f docker/docker-compose.yml build
